@@ -136,7 +136,7 @@ class WandBLogger(BaseLogger):
     def __init__(self, log_dir: str, job_config: JobConfig, tag: str | None = None):
         # Import wandb here to avoid startup import
         import wandb
-
+        
         self.wandb = wandb
         self.tag = tag
 
@@ -161,6 +161,38 @@ class WandBLogger(BaseLogger):
         if self.wandb.run is not None:
             self.wandb.finish()
 
+class SwanLabLogger(BaseLogger):
+
+    def __init__(self, log_dir: str, job_config: JobConfig, tag: str | None = None):
+        import swanlab
+        SWANLAB_API_KEY = os.environ.get("SWANLAB_API_KEY", None)
+        SWANLAB_LOG_DIR = os.environ.get("SWANLAB_LOG_DIR", "swanlog")
+        SWANLAB_MODE = os.environ.get("SWANLAB_MODE", "cloud")
+
+        if SWANLAB_API_KEY:
+            swanlab.login(SWANLAB_API_KEY)
+        self.swanlab = swanlab
+        self.tag = tag
+
+        os.makedirs(log_dir, exist_ok=True)
+
+        self.run = self.swanlab.init(
+            project=os.getenv("SWANLAB_PROJECT", "torchtitan"), # 建议使用 SWANLAB_PROJECT 环境变量
+            logdir=log_dir,  # 使用 logdir 指定日志目录 [5]
+            config=job_config.to_dict(),  # 传入配置字典 [4]
+        )
+        logger.info("SwanLab logging enabled")
+
+    def log(self, metrics: dict[str, Any], step: int) -> None:
+        swanlab_metrics = {
+            (k if self.tag is None else f"{self.tag}/{k}"): v
+            for k, v in metrics.items()
+        }
+        self.swanlab.log(swanlab_metrics, step=step)
+
+    def close(self) -> None:
+        if self.run:
+            self.swanlab.finish()
 
 def ensure_pp_loss_visible(
     parallel_dims: ParallelDims, job_config: JobConfig, color: Color
@@ -238,7 +270,7 @@ def _build_metric_logger(
 
     # Check if any logging backend is enabled
     has_logging_enabled = (
-        metrics_config.enable_tensorboard or metrics_config.enable_wandb
+        metrics_config.enable_tensorboard or metrics_config.enable_wandb or metrics_config.enable_swanlab
     )
 
     # Determine if this rank should log
@@ -284,6 +316,19 @@ def _build_metric_logger(
                 )
             else:
                 logger.error(f"Failed to create WandB logger: {e}")
+    
+    # Create loggers in priority order
+    if metrics_config.enable_swanlab:
+        logger.debug("Attempting to create WandB logger")
+        try:
+            return SwanLabLogger(base_log_dir, job_config, tag)
+        except Exception as e:
+            if "No module named 'swanlab'" in str(e):
+                logger.error(
+                    "Failed to create swanlab logger: No module named 'swanlab'. Please install it using 'pip install wandb'."
+                )
+            else:
+                logger.error(f"Failed to create swanlab logger: {e}")
 
     if metrics_config.enable_tensorboard:
         logger.debug("Creating TensorBoard logger")

@@ -18,6 +18,7 @@ disable_color_printing = false
 enable_tensorboard = false
 save_tb_folder = "tb"
 enable_wandb = false
+enable_swanlab = true
 
 [model]
 name = "deepseek_v3"

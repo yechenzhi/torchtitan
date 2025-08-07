@@ -69,6 +69,9 @@ class Metrics:
     enable_wandb: bool = False
     """Whether to log metrics to Weights & Biases"""
 
+    enable_swanlab: bool = False
+    """Whether to log metrics to swanlab"""
+
 
 @dataclass
 class Model:
