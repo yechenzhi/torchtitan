@@ -325,6 +325,7 @@ class MoE(nn.Module):
             dim=0,
             index=token_indices,
         )
+        # routed_input = x.view(-1, dim)[token_indices]
 
         if self.score_before_experts:
             routed_input = (

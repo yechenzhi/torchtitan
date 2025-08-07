@@ -7,7 +7,7 @@
 from dataclasses import dataclass
 
 from functools import partial
-from typing import Any, Callable
+from typing import Any, Callable, Dict
 
 import torch
 
@@ -21,6 +21,34 @@ from torchtitan.components.tokenizer import BaseTokenizer
 from torchtitan.config import JobConfig
 from torchtitan.tools.logging import logger
 
+def load_wikipedia_dataset(dataset_path: str, **kwargs):
+    """Load Wikipedia dataset with specific configuration."""
+    logger.info("Loading Wikipedia dataset...")
+    return load_dataset(
+        dataset_path,
+        name="20231101.en",
+        split="train",
+        streaming=True,
+        trust_remote_code=True,
+    )
+
+def load_SlimPajama_dataset(dataset_path: str, **kwargs):
+    """Load SlimPajama dataset with specific configuration."""
+    logger.info("Loading SlimPajama dataset...")
+    return load_dataset(
+        dataset_path,
+        split="train",
+        streaming=True,
+        trust_remote_code=True,
+    )
+
+def process_SlimPajama_text(sample: Dict[str, Any]) -> str:
+    """Process SlimPajama dataset sample text."""
+    return sample["text"]
+
+def process_wikipedia_text(sample: Dict[str, Any]) -> str:
+    """Process Wikipedia dataset sample text."""
+    return f"{sample['title']}\n\n{sample['text']}"
 
 def _load_c4_dataset(dataset_path: str, split: str):
     """Load C4 dataset with default configuration."""
@@ -55,6 +83,26 @@ DATASETS = {
         path="allenai/c4",
         loader=partial(_load_c4_dataset, split="validation"),
         text_processor=_process_c4_text,
+    ),
+    "wikipedia": DatasetConfig(
+        path="wikimedia/wikipedia",  # default HuggingFace dataset path
+        loader=load_wikipedia_dataset,
+        text_processor=process_wikipedia_text,
+    ),
+    "slimpajama6b": DatasetConfig(
+        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        loader=partial(load_SlimPajama_dataset, split="train"),
+        text_processor=process_SlimPajama_text,
+    ),
+    "slimpajama6b_test": DatasetConfig(
+        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        loader=partial(load_SlimPajama_dataset, split="test"),
+        text_processor=process_SlimPajama_text,
+    ),
+    "slimpajama6b_validation": DatasetConfig(
+        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        loader=partial(load_SlimPajama_dataset, split="validation"),
+        text_processor=process_SlimPajama_text,
     ),
 }
 
