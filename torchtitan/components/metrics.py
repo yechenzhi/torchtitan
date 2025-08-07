@@ -178,6 +178,7 @@ class SwanLabLogger(BaseLogger):
 
         self.run = self.swanlab.init(
             project=os.getenv("SWANLAB_PROJECT", "torchtitan"), # 建议使用 SWANLAB_PROJECT 环境变量
+            experiment_name=os.getenv("SWANLAB_EXPERIMENT_NAME", "torchtitan_experiment"),
             logdir=log_dir,  # 使用 logdir 指定日志目录 [5]
             config=job_config.to_dict(),  # 传入配置字典 [4]
         )
