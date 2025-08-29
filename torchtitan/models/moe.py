@@ -406,7 +406,12 @@ class MoE(nn.Module):
         ).expand(-1, dim)
 
         # shape (bs*slen*top_k, dim)
-        routed_input = torch.gather(x, dim=0, index=token_indices_experts_sorted)
+        routed_input = torch.gather(
+            x.view(-1, dim),
+            dim=0,
+            index=token_indices,
+        )
+        # routed_input = x.view(-1, dim)[token_indices]
 
         if self.score_before_experts:
             routed_input = (

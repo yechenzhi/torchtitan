@@ -21,4 +21,8 @@ PYTORCH_ALLOC_CONF="expandable_segments:True" \
 TORCHFT_LIGHTHOUSE=${TORCHFT_LIGHTHOUSE} \
 torchrun --nproc_per_node=${NGPU} --rdzv_backend c10d --rdzv_endpoint="localhost:0" \
 --local-ranks-filter ${LOG_RANK} --role rank --tee 3 \
--m ${TRAIN_FILE} --job.config_file ${CONFIG_FILE} "$@"
+-m torchtitan.train --job.config_file ${CONFIG_FILE} "$@"
+
+# debugpy-run -m torch.distributed.run -p 5678 -- --nproc_per_node=${NGPU} --rdzv_backend c10d --rdzv_endpoint="localhost:0" \
+# --local-ranks-filter ${LOG_RANK} --role rank --tee 3 \
+# -m torchtitan.train --job.config_file ${CONFIG_FILE} "$@"
