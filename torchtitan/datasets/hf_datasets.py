@@ -90,17 +90,17 @@ DATASETS = {
         text_processor=process_wikipedia_text,
     ),
     "slimpajama6b": DatasetConfig(
-        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        path="/root/autodl-tmp/torchtitan/data/SlimPajama-6B",
         loader=partial(load_SlimPajama_dataset, split="train"),
         text_processor=process_SlimPajama_text,
     ),
     "slimpajama6b_test": DatasetConfig(
-        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        path="/root/autodl-tmp/torchtitan/data/SlimPajama-6B",
         loader=partial(load_SlimPajama_dataset, split="test"),
         text_processor=process_SlimPajama_text,
     ),
     "slimpajama6b_validation": DatasetConfig(
-        path="/root/highspeedstorage/h800/torchtitan/data/SlimPajama-6B",
+        path="/root/autodl-tmp/torchtitan/data/SlimPajama-6B",
         loader=partial(load_SlimPajama_dataset, split="validation"),
         text_processor=process_SlimPajama_text,
     ),
